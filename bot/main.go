@@ -1,101 +1,65 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"log"
 	"math/rand"
-	"net/http"
 	"net/url"
-	"strings"
+	"time"
 
-	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-var (
-	AnnoyanceTriggers = []string{"bot", "Bot", "BOT",}
-	BotId             = "c1d5a8381af0c8b21fe3bcb2b6"
-	// TODO Get value at runtime
-	Token   = "<substitute real token at deploy time>"
-	ChatURL = (&url.URL{
+func main() {
+	rand.Seed(time.Now().Unix())
+
+	// TODO Derive the token at runtime
+	gmHandler := NewGroupMeMessenger("c1d5a8381af0c8b21fe3bcb2b6", &url.URL{
 		Scheme:   "https",
 		Host:     "api.groupme.com",
 		Path:     "v3/bots/post",
-		RawQuery: fmt.Sprintf("token=%s", Token),
-	}).String()
-	EmptyResponse = events.APIGatewayProxyResponse{}
-	RandFunc      = rand.Float64
-	IlyaRate      = 0.02
-)
-
-type GroupMeMessage struct {
-	BotId string `json:"bot_id"`
-	Text  string `json:"text"`
-}
-
-type GroupMeCallback struct {
-	Name       string `json:"name"`
-	SenderType string `json:"sender_type"`
-	Text       string `json:"text"`
-}
-
-// TODO Reabstract and test in better isolation
-func makePost(text string) (events.APIGatewayProxyResponse, error) {
-	botMsg, err := json.Marshal(GroupMeMessage{
-		BotId: BotId,
-		Text:  text,
+		RawQuery: "token=<Insert Real Token Value>",
 	})
-	if err != nil {
-		return EmptyResponse, err
-	}
 
-	resp, err := http.Post(ChatURL, "application/json", bytes.NewBuffer(botMsg))
-	if err != nil {
-		return EmptyResponse, err
-	}
+	annoyanceResponder := NewTriggerResponder("bot", "", []string{
+		"хватит надоедать мне!",
+		"БЫДЛО",
+		"ДУРАК",
+		"СВОЛОЧЬ",
+		"ПОДОНОК",
+		"Сволочь",
+		"ДРЯНЬ",
+	})
 
-	return events.APIGatewayProxyResponse{
-		StatusCode: resp.StatusCode,
-	}, nil
-}
+	ilyaResponder := NewRandomResponder(0.05, rand.Float64, []string{
+		"When I talk English, I’m still computing.",
+		"When I hear my voice, it sounds disgusting.",
+		"Guys! A question! Is chicken meat? Or is it a bird?",
+		"In Philly, win or lose, you’re still overpaid.",
+		"Decepticons always have nice stuff." +
+			" Autobots, they rebels. They weapons aren’t as nice.",
+		"Whoa, whoa, whoa, whoa. I don’t have contract. I’m here as guest.",
+		"Siberian Husky. She’s all white. Beautiful blue eyes." +
+			" That’s basically blonde girl with blue eyes." +
+			" Your dream, man. My husky, basically, she’s a hot girl, man.",
+		"I think like, ‘And we have some problems here on the earth we worry" +
+			" about? Compared to like…nothing. Just be happy. Don’t worry be happy" +
+			" right now",
+	})
 
-func samHandler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	log.Println(request.Body)
+	pingResponder := NewTriggerResponder("ping", "", []string{"понг"})
 
-	var inMsg *GroupMeCallback
-	err := json.Unmarshal([]byte(request.Body), &inMsg)
-	if err != nil {
-		return EmptyResponse, err
-	}
+	tradeResponder := NewTriggerResponder(
+		"trade", "You give best player, I give ", []string{
+			"Bucket of Wood Chips",
+			"Concrete Crumbles",
+			"Fabergé egg",
+			"Guy Fieri",
+			"Putin's love",
+			"2020 Presidential election",
+			"Ukrainian prostitutes",
+			"Pyser's kidney",
+		})
 
-	if inMsg.SenderType != "user" {
-		return events.APIGatewayProxyResponse{
-			StatusCode: 200,
-		}, nil
-	}
-
-	if RandFunc() < IlyaRate {
-		return makePost("When I talk English, I’m still computing.")
-	} else {
-		for _, t := range AnnoyanceTriggers {
-			if strings.Contains(inMsg.Text, t) {
-				if inMsg.Name == "Owned By A Crazy Pittsburgher" {
-					return makePost("Shut up Jake")
-				} else {
-					return makePost("хватит надоедать мне!")
-				}
-			}
-		}
-	}
-
-	return events.APIGatewayProxyResponse{
-		StatusCode: 200,
-	}, nil
-
-}
-
-func main() {
-	lambda.Start(samHandler)
+	samHandler := NewSAMHandler(
+		gmHandler, annoyanceResponder, ilyaResponder, pingResponder, tradeResponder)
+	lambda.Start(samHandler.Handle)
 }
