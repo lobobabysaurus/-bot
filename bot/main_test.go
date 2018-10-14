@@ -109,7 +109,47 @@ var _ = Describe("Handler", func() {
 				})
 			})
 
-			It("should act irritated", func() {
+			Context("And the person isn't jake", func() {
+
+				It("should act irritated", func() {
+					BotId = "test id"
+					called := false
+					h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						reqMessage, err := ioutil.ReadAll(r.Body)
+						Expect(err).To(BeNil())
+						r.Body.Close()
+
+						var gmMsg *GroupMeMessage
+						err = json.Unmarshal(reqMessage, &gmMsg)
+						Expect(err).To(BeNil())
+						Expect(gmMsg.BotId).To(Equal("test id"))
+						Expect(gmMsg.Text).To(Equal("хватит надоедать мне!"))
+
+						called = true
+						w.WriteHeader(200)
+					})
+					s := rigServer(h)
+					defer s.Close()
+
+					resp, err := samHandler(callbackRequest)
+					Expect(err).To(BeNil())
+					Expect(resp.StatusCode).To(Equal(200))
+					Expect(called).To(BeTrue())
+				})
+			})
+		})
+
+		Context("And the person is Jake", func() {
+
+			BeforeEach(func() {
+				callbackRequest = wrapCallback(&GroupMeCallback{
+					Name:       "Owned By A Crazy Pittsburgher",
+					SenderType: "user",
+					Text:       "Filbot",
+				})
+			})
+
+			It("should tell him to shut up", func() {
 				BotId = "test id"
 				called := false
 				h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -121,7 +161,7 @@ var _ = Describe("Handler", func() {
 					err = json.Unmarshal(reqMessage, &gmMsg)
 					Expect(err).To(BeNil())
 					Expect(gmMsg.BotId).To(Equal("test id"))
-					Expect(gmMsg.Text).To(Equal("хватит надоедать мне!"))
+					Expect(gmMsg.Text).To(Equal("Shut up Jake"))
 
 					called = true
 					w.WriteHeader(200)

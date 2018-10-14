@@ -81,7 +81,11 @@ func samHandler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRe
 	} else {
 		for _, t := range AnnoyanceTriggers {
 			if strings.Contains(inMsg.Text, t) {
-				return makePost("хватит надоедать мне!")
+				if inMsg.Name == "Owned By A Crazy Pittsburgher" {
+					return makePost("Shut up Jake")
+				} else {
+					return makePost("хватит надоедать мне!")
+				}
 			}
 		}
 	}
