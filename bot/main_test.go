@@ -98,6 +98,43 @@ var _ = Describe("Handler", func() {
 				Expect(resp.StatusCode).To(Equal(200))
 			})
 		})
+
+		Context("And the person is talking to the bot", func() {
+
+			BeforeEach(func() {
+				callbackRequest = wrapCallback(&GroupMeCallback{
+					Name:       "testing",
+					SenderType: "user",
+					Text:       "Filbot",
+				})
+			})
+
+			It("should act irritated", func() {
+				BotId = "test id"
+				called := false
+				h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					reqMessage, err := ioutil.ReadAll(r.Body)
+					Expect(err).To(BeNil())
+					r.Body.Close()
+
+					var gmMsg *GroupMeMessage
+					err = json.Unmarshal(reqMessage, &gmMsg)
+					Expect(err).To(BeNil())
+					Expect(gmMsg.BotId).To(Equal("test id"))
+					Expect(gmMsg.Text).To(Equal("хватит надоедать мне!"))
+
+					called = true
+					w.WriteHeader(200)
+				})
+				s := rigServer(h)
+				defer s.Close()
+
+				resp, err := samHandler(callbackRequest)
+				Expect(err).To(BeNil())
+				Expect(resp.StatusCode).To(Equal(200))
+				Expect(called).To(BeTrue())
+			})
+		})
 	})
 
 	Context("When a bot sends a message to GroupMe", func() {
