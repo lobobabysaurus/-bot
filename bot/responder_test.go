@@ -13,7 +13,7 @@ var _ = Describe("TriggerResponder", func() {
 
 		It("should give a random response", func() {
 			responder := NewTriggerResponder("trig", "", responses)
-			resp := responder.Respond("trigger")
+			resp := responder.Respond("trig")
 			Expect(resp).ToNot(BeNil())
 			Expect(responses).To(ContainElement(*resp))
 		})
@@ -21,18 +21,17 @@ var _ = Describe("TriggerResponder", func() {
 		It("should prefix the reponse", func() {
 			prefix := "prefix:"
 			responder := NewTriggerResponder("trig", prefix, responses)
-			resp := responder.Respond("trig")
+			resp := responder.Respond("trigger")
 			Expect(resp).ToNot(BeNil())
 			Expect(*resp).To(HavePrefix(prefix))
 			prefixlessResp := (*resp)[len(prefix):]
 			Expect(responses).To(ContainElement(prefixlessResp))
 		})
 
-		It("should be case insenstive", func() {
+		It("should be case senstive", func() {
 			responder := NewTriggerResponder("trig", "", responses)
 			resp := responder.Respond("TrIg")
-			Expect(resp).ToNot(BeNil())
-			Expect(responses).To(ContainElement(*resp))
+			Expect(resp).To(BeNil())
 		})
 	})
 

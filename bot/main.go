@@ -19,7 +19,7 @@ func main() {
 		RawQuery: "token=<Insert Real Token Value>",
 	})
 
-	annoyanceResponder := NewTriggerResponder("bot", "", []string{
+	annoyanceResponder := NewTriggerResponder("Filbot", "", []string{
 		"хватит надоедать мне!",
 		"БЫДЛО",
 		"ДУРАК",
@@ -45,10 +45,10 @@ func main() {
 			" right now",
 	})
 
-	pingResponder := NewTriggerResponder("ping", "", []string{"понг"})
+	pingResponder := NewTriggerResponder("Ping", "", []string{"понг"})
 
 	tradeResponder := NewTriggerResponder(
-		"trade", "You give best player, I give ", []string{
+		"Trade", "You give best player, I give ", []string{
 			"Bucket of Wood Chips",
 			"Concrete Crumbles",
 			"Fabergé egg",

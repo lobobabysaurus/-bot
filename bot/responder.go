@@ -26,7 +26,7 @@ func NewTriggerResponder(
 }
 
 func (r *TriggerResponder) Respond(in string) *string {
-	if strings.Contains(strings.ToLower(in), r.trigger) {
+	if strings.Contains(in, r.trigger) {
 		resp := r.prefix + randomElement(r.responses)
 		return &resp
 	} else {
