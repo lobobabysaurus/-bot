@@ -49,7 +49,7 @@ func main() {
 			"Evgeni Malkin",
 			"Magadan Oblast",
 			"Rob Gronkowski",
-			"Pool full of Borscht."
+			"Pool full of Borscht.",
 		})
 
 	samHandler := NewSAMHandler(
